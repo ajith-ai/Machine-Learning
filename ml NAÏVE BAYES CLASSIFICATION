@@ -1,0 +1,127 @@
+************************ Naive Bayes calssifier ************
+
+1.preparing the dataset
+
+#load iris dataset
+from sklearn.datasets import load_iris
+import pandas as pd
+import numpy as np
+
+data = load_iris()
+X,y, column_names =data['data'],data['target'],data['feature_names']
+X = pd.DataFrame(X, columns = column_names)
+
+#split the data
+from sklearn.model_selection import train_test_split
+X_train, X_val, y_train, y_val = train_test_split(X,y,randon_state = 44)
+
+
+2.calculating train set statistics
+
+#basically this is our fit function :)
+#statistics for the train set
+means = X_train.groupby(y_train).apply(np.mean)
+stds = X_train.groupby(y_train).apply(np.std)
+
+#class prior probabilities
+probs = X_train.groupby(y_train).apply(lambda x: len(x))/ X_train.shape[0]
+
+
+3.calculating the labels for the vaalidation set
+
+y_pred = []
+#for each element in the validation set 
+for elem in range(X_val.shape[0]):
+    p = {}
+    
+    #for each possible class
+    for c1 in np.unique(y_train):
+    
+        #take the prior probability of the given class
+        p[c1] = probs.iloc[c1]
+        
+        #for each column in the data
+        for index, param in enumerate(X_val.iloc[elem]):
+        
+            #multiply by the probability of the given column value to belong to the distribution
+            #of the train column for the given class
+            p[c1] *= norm.pdf(param, means.iloc[c1, index], stds.iloc[c1, index])
+    y_pred.append(pd.series(p).values.argmax())
+    
+    
+    
+#my calssifier 
+from sklearn.metrics import accuracy_score
+accuracy_score(y_val, y_pred)
+
+#sklearn classifier
+from sklearn.naive_bayes import  GaussianNB
+model = GaussianNB()
+model.fit(X_train, y_train)
+
+accuracy_score(y_val,model.predict(X_val))
+
+
+----------------------------------------------------------------------------------------------------------------
+
+
+
+
+In this example, you can use the dummy dataset with three columns: weather, temperature, and play. 
+The first two are features(weather, temperature) and the other is the label.
+
+# Assigning features and label variables
+weather=['Sunny','Sunny','Overcast','Rainy','Rainy','Rainy','Overcast','Sunny','Sunny',
+'Rainy','Sunny','Overcast','Overcast','Rainy']
+temp=['Hot','Hot','Hot','Mild','Cool','Cool','Cool','Mild','Cool','Mild','Mild','Mild','Hot','Mild']
+
+play=['No','No','Yes','Yes','Yes','No','Yes','No','Yes','Yes','Yes','Yes','Yes','No']
+
+
+
+Encoding Features
+First, you need to convert these string labels into numbers. for example: 'Overcast', 'Rainy', 'Sunny' as 0, 1, 2. This is known as label encoding. Scikit-learn provides LabelEncoder library for encoding labels with a value between 0 and one less than the number of discrete classes.
+
+# Import LabelEncoder
+from sklearn import preprocessing
+#creating labelEncoder
+le = preprocessing.LabelEncoder()
+# Converting string labels into numbers.
+wheather_encoded=le.fit_transform(wheather)
+print wheather_encoded
+
+
+Similarly, you can also encode temp and play columns.
+
+# Converting string labels into numbers
+temp_encoded=le.fit_transform(temp)
+label=le.fit_transform(play)
+print "Temp:",temp_encoded
+print "Play:",label
+
+Now combine both the features (weather and temp) in a single variable (list of tuples).
+
+#Combinig weather and temp into single listof tuples
+features=zip(weather_encoded,temp_encoded)
+print features
+
+
+
+Generating Model
+Generate a model using naive bayes classifier in the following steps:
+
+Create naive bayes classifier
+Fit the dataset on classifier
+Perform prediction
+#Import Gaussian Naive Bayes model
+from sklearn.naive_bayes import GaussianNB
+
+#Create a Gaussian Classifier
+model = GaussianNB()
+
+# Train the model using the training sets
+model.fit(features,label)
+
+#Predict Output
+predicted= model.predict([[0,2]]) # 0:Overcast, 2:Mild
+print "Predicted Value:", predicted

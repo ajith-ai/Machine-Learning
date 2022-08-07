@@ -1,0 +1,371 @@
+=============================== MACHINE LEARNING ===================================
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+----------------------------KNN (K-NERAREST NEIGHBOR)---------------------------------
+#importing libraries 
+import itertools
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.ticker import NullFormatter
+import pandas as pd
+import numpy as np
+import matplotlib.ticker as ticker
+from sklearn import preprocessing
+%matplotlib inline
+
+-----------
+#load the data
+df = pd.read_csv('teleCust1000t.csv')
+df.head()
+
+------------data visualization
+#lets see how many each class in dataset
+df['custcat'].value_counts()
+
+#visualization by hist
+df.hist(column='income', bins=50)
+
+--------------feature sets of the data
+#define the columns of the dataset
+df.columns
+
+#To use scikit-learn library, we have to convert the Pandas data frame to a Numpy array:
+X = df[['region', 'tenure','age', 'marital', 'address', 'income', 'ed', 'employ','retire', 'gender', 'reside']] .values  #.astype(float)
+X[0:5]
+
+#whats are labels 
+y = df['custcat'].values
+y[0:5]
+
+--------------normalize the data
+#Normalize Data
+#Data Standardization give data zero mean and unit variance, it is good practice, especially for algorithms such as KNN which is based on distance of cases:
+X = preprocessing.StandardScaler().fit(X).transform(X.astype(float))
+X[0:5]
+
+-------------test train split
+#test/train split datafrom sklearn.model_selection import train_test_split
+X_train, X_test, y_train, y_test = train_test_split( X, y, test_size=0.2, random_state=4)
+print ('Train set:', X_train.shape,  y_train.shape)
+print ('Test set:', X_test.shape,  y_test.shape)
+
+--------------classification KNN
+#importing library for KNN
+from sklearn.neighbors import KNeighborsClassifier
+
+--------------training 
+#train the model. lets start k=4 in algorithms
+k = 4
+#Train Model and Predict  
+neigh = KNeighborsClassifier(n_neighbors = k).fit(X_train,y_train)
+neigh
+
+---------------predicting 
+#predicting the test data
+yhat = neigh.predict(X_test)
+yhat[0:5]
+
+----------Accuracy evaluation
+#In multilabel classification, accuracy classification score function computes subset accuracy.
+# This function is equal to the jaccard_similarity_score function. Essentially,
+# it calculates how match the actual labels and predicted labels are in the test set.
+from sklearn import metrics
+print("Train set Accuracy: ", metrics.accuracy_score(y_train, neigh.predict(X_train)))
+print("Test set Accuracy: ", metrics.accuracy_score(y_test, yhat))
+
+-------------lets build the model with k=6
+#k=6 for model
+k = 6
+#Train Model and Predict  
+neigh = KNeighborsClassifier(n_neighbors = k).fit(X_train,y_train)
+neigh
+
+yhat = neigh.predict(X_test)
+yhat[0:5]
+
+from sklearn import metrics
+print("Train set Accuracy: ", metrics.accuracy_score(y_train, neigh.predict(X_train)))
+print("Test set Accuracy: ", metrics.accuracy_score(y_test, yhat))
+
+-------------different ks value
+#We can calucalte the accuracy of KNN for different Ks.
+Ks = 10
+mean_acc = np.zeros((Ks-1))
+std_acc = np.zeros((Ks-1))
+ConfustionMx = [];
+for n in range(1,Ks):
+    
+    #Train Model and Predict  
+    neigh = KNeighborsClassifier(n_neighbors = n).fit(X_train,y_train)
+    yhat=neigh.predict(X_test)
+    mean_acc[n-1] = metrics.accuracy_score(y_test, yhat)
+
+    
+    std_acc[n-1]=np.std(yhat==y_test)/np.sqrt(yhat.shape[0])
+
+mean_acc
+
+-------------ploting different ks value
+#Plot model accuracy for Different number of Neighbors
+plt.plot(range(1,Ks),mean_acc,'g')
+plt.fill_between(range(1,Ks),mean_acc - 1 * std_acc,mean_acc + 1 * std_acc, alpha=0.10)
+plt.legend(('Accuracy ', '+/- 3xstd'))
+plt.ylabel('Accuracy ')
+plt.xlabel('Number of Nabors (K)')
+plt.tight_layout()
+plt.show()
+
+#print the best accuracy
+print( "The best accuracy was with", mean_acc.max(), "with k=", mean_acc.argmax()+1) 
+
+
+__________________________________________________________________________________________________________
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+------------------------------------DECISION TREE-----------------------------
+--------libraries
+#importing the libraries
+import numpy as np 
+import pandas as pd
+from sklearn.tree import DecisionTreeClassifier
+
+-------load the data
+#load the data
+my_data = pd.read_csv("drug200.csv", delimiter=",")
+my_data[0:5]
+
+--------preprocessing the data
+#we have to convert the Pandas data frame to a Numpy array:
+X = my_data[['Age', 'Sex', 'BP', 'Cholesterol', 'Na_to_K']].values
+X[0:5]
+
+-------dummy the categorical variables
+# Convert categorical variable into dummy/indicator variables.
+from sklearn import preprocessing
+le_sex = preprocessing.LabelEncoder()
+le_sex.fit(['F','M'])
+X[:,1] = le_sex.transform(X[:,1]) 
+
+
+le_BP = preprocessing.LabelEncoder()
+le_BP.fit([ 'LOW', 'NORMAL', 'HIGH'])
+X[:,2] = le_BP.transform(X[:,2])
+
+
+le_Chol = preprocessing.LabelEncoder()
+le_Chol.fit([ 'NORMAL', 'HIGH'])
+X[:,3] = le_Chol.transform(X[:,3]) 
+
+X[0:5]
+
+----------target variable
+#now we can fill the target variable
+y = my_data["Drug"]
+y[0:5]
+
+------------SETTING UP DECISION TREE
+#importing libraries
+from sklearn.model_selection import train_test_split
+
+---------splitting the data
+#test train data spliting
+X_trainset, X_testset, y_trainset, y_testset = train_test_split(X, y, test_size=0.3, random_state=3)
+
+-----------shape& size
+#shape of the train set data
+print('x_trainset shape is',X_trainset.shape)
+print('y_trainset shape is',y_trainset.shape)
+
+-------MODELLING
+#We will first create an instance of the DecisionTreeClassifier called drugTree.
+#Inside of the classifier, specify criterion="entropy" so we can see the information gain of each node.
+drugTree = DecisionTreeClassifier(criterion="entropy", max_depth = 4)
+drugTree # it shows the default parameters
+
+-------fitting the data
+#Next, we will fit the data with the training feature matrix X_trainset and training response vector y_trainset
+drugTree.fit(X_trainset,y_trainset)
+
+-----------PREDICTON
+#Let's make some predictions on the testing dataset and store it into a variable called predTree.
+predTree = drugTree.predict(X_testset)
+
+---------compare the actual data vs predicted data
+#You can print out predTree and y_testset if you want to visually compare the prediction to the actual values.
+print (predTree [0:5])
+print (y_testset [0:5])
+
+---------EVALUVATION
+#Next, let's import metrics from sklearn and check the accuracy of our model
+from sklearn import metrics
+import matplotlib.pyplot as plt
+print("DecisionTrees's Accuracy: ", metrics.accuracy_score(y_testset, predTree))
+# If the entire set of predicted labels for a sample strictly match with the true set of labels, then the subset accuracy is 1.0; otherwise it is 0.0.
+
+-------VISUALIZATION
+#importing libraries
+from sklearn.externals.six import StringIO
+import pydotplus
+import matplotlib.image as mpimg
+from sklearn import tree
+%matplotlib inline 
+
+--------
+#lets plot the tree
+dot_data = StringIO()
+filename = "drugtree.png"
+featureNames = my_data.columns[0:5]
+targetNames = my_data["Drug"].unique().tolist()
+out=tree.export_graphviz(drugTree,feature_names=featureNames, out_file=dot_data, class_names= np.unique(y_trainset), filled=True,  special_characters=True,rotate=False)  
+graph = pydotplus.graph_from_dot_data(dot_data.getvalue())  
+graph.write_png(filename)
+img = mpimg.imread(filename)
+plt.figure(figsize=(100, 200))
+plt.imshow(img,interpolation='nearest')
+
+
+__________________________________________________________________________________________________________
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+--------------------------------------LOGISTRIC REGRESSION----------------------------------------
+
+-------------
+#impoorting libraries
+import pandas as pd
+import pylab as pl
+import numpy as np
+import scipy.optimize as opt
+from sklearn import preprocessing
+%matplotlib inline 
+import matplotlib.pyplot as plt
+
+------------
+#loading the data
+churn_df = pd.read_csv("ChurnData.csv")
+churn_df.head()
+
+-----------DATA PREPRROCESSING  & SELECTION
+#Lets select some features for the modeling.
+#Also we change the target data type to be integer, as it is a requirement by the skitlearn algorithm:
+churn_df = churn_df[['tenure', 'age', 'address', 'income', 'ed', 'employ', 'equip',   'callcard', 'wireless','churn']]
+churn_df['churn'] = churn_df['churn'].astype('int')
+churn_df.head()
+
+-------------define the feature sets and target
+#define the x datasets(feature datasets)
+X = np.asarray(churn_df[['tenure', 'age', 'address', 'income', 'ed', 'employ', 'equip']])
+X[0:5]
+
+
+#define the y datasets(target variable)
+y = np.asarray(churn_df['churn'])
+y [0:5]
+
+-----------NORRMALIZATION
+#normalize the dataset
+from sklearn import preprocessing
+X = preprocessing.StandardScaler().fit(X).transform(X)
+X[0:5]
+
+----------TEST/TRAIN DATASET SPLIT
+#splitting the test and train dataset
+from sklearn.model_selection import train_test_split
+X_train, X_test, y_train, y_test = train_test_split( X, y, test_size=0.2, random_state=4)
+print ('Train set:', X_train.shape,  y_train.shape)
+print ('Test set:', X_test.shape,  y_test.shape)
+
+---------MOODELLING (LOGISTIC REGRESSION WITH SCIKIT LEARN)
+#now lets fit our modelling with train set
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import confusion_matrix
+LR = LogisticRegression(C=0.01, solver='liblinear').fit(X_train,y_train)
+LR
+
+-----------PREDICTON
+#now  we can predict using test datasets
+yhat = LR.predict(X_test)
+yhat
+
+-------prediction probability
+#predict_proba returns estimates for all classes, ordered by the label of classes.
+# So, the first column is the probability of class 1, P(Y=1|X), and second column is probability of class 0, P(Y=0|X):
+yhat_prob = LR.predict_proba(X_test)
+yhat_prob
+
+--------EVALUVATION-(#jaccard index#)
+#Lets try jaccard index for accuracy evaluation. we can define jaccard as the size of the intersection divided by the size of the union of two label sets.
+#If the entire set of predicted labels for a sample strictly match with the true set of labels, then the subset accuracy is 1.0; otherwise it is 0.0.
+from sklearn.metrics import jaccard_similarity_score
+jaccard_similarity_score(y_test, yhat)
+
+-----------CONFUSION MATRIX
+#Another way of looking at accuracy of classifier is to look at confusion matrix.
+
+from sklearn.metrics import classification_report, confusion_matrix
+import itertools
+def plot_confusion_matrix(cm, classes,
+                          normalize=False,
+                          title='Confusion matrix',
+                          cmap=plt.cm.Blues):
+    """
+    This function prints and plots the confusion matrix.
+    Normalization can be applied by setting `normalize=True`.
+    """
+    if normalize:
+        cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
+        print("Normalized confusion matrix")
+    else:
+        print('Confusion matrix, without normalization')
+
+    print(cm)
+
+    plt.imshow(cm, interpolation='nearest', cmap=cmap)
+    plt.title(title)
+    plt.colorbar()
+    tick_marks = np.arange(len(classes))
+    plt.xticks(tick_marks, classes, rotation=45)
+    plt.yticks(tick_marks, classes)
+
+    fmt = '.2f' if normalize else 'd'
+    thresh = cm.max() / 2.
+    for i, j in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
+        plt.text(j, i, format(cm[i, j], fmt),
+                 horizontalalignment="center",
+                 color="white" if cm[i, j] > thresh else "black")
+
+    plt.tight_layout()
+    plt.ylabel('True label')
+    plt.xlabel('Predicted label')
+print(confusion_matrix(y_test, yhat, labels=[1,0]))
+
+-----------
+#ploting the confusion matrix
+# Compute confusion matrix
+cnf_matrix = confusion_matrix(y_test, yhat, labels=[1,0])
+np.set_printoptions(precision=2)
+
+
+# Plot non-normalized confusion matrix
+plt.figure()
+plot_confusion_matrix(cnf_matrix, classes=['churn=1','churn=0'],normalize= False,  title='Confusion matrix')
+
+---------classification report
+#calaculate the  report 
+print (classification_report(y_test, yhat))
+
+----------LOG LOSS
+#let see the log loss
+from sklearn.metrics import log_loss
+log_loss(y_test, yhat_prob)
+
+-----------
+#Try to build Logistic Regression model again for the same dataset, but this time, use different solver and regularization values? What is new logLoss value?
+LR2 = LogisticRegression(C=0.01, solver='sag').fit(X_train,y_train)
+yhat_prob2 = LR2.predict_proba(X_test)
+print ("LogLoss: : %.2f" % log_loss(y_test, yhat_prob2))
+
+__________________________________________________________________________________________________________
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

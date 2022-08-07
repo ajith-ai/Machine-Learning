@@ -1,0 +1,100 @@
+
+
+
+import numpy as np
+from matplotlib import pyplot as plt
+from scipy.stats import multivariate_normal
+from matplotlib.patches import Ellipse
+%matplotlib inline
+
+def generate_mixing_coefficients(number):
+    a = 1
+    pi_v = np.zeros(number)
+    for i in range(number-1):
+        pi_v[i] = np.random.uniform(0, a)
+        a = a - pi_v[i]
+    pi_v[number-1] = a
+    return pi_v
+
+num_gaussian = 3
+pi_v = generate_mixing_coefficients(num_gaussian)
+sigma_v = np.zeros((num_gaussian,2,2))
+sigma_v[:, 0, 0] = np.random.uniform(1, 4, size=num_gaussian)
+sigma_v[:, 1, 1] = np.random.uniform(1, 4, size=num_gaussian)
+sigma_v[:, 0, 1] = np.random.normal(0, 1, size=num_gaussian)
+sigma_v[:, 1, 0] = sigma_v[:, 0, 1]
+
+mean_v = np.random.uniform(-20, 20, size=(num_gaussian, 2))
+
+#Now, we can draw samples from the mixture of Gaussians by executing the following procedure for each sample:
+#Draw the Categorical distribution conditioned on the vector which are the mixing coefficients
+#Draw a sample x from the k-th Gaussian
+
+num_samples = 1000
+samples = np.zeros((num_samples, 2))
+p = np.random.multinomial(num_samples, pi_v)
+samples[:p[0],:] = np.random.multivariate_normal(mean_v[0], sigma_v[0], size=p[0])
+for i in range(1, num_gaussian, 1):
+    samples[np.sum(p[:i]):np.sum(p[:i+1]),:] = np.random.multivariate_normal(mean_v[i], sigma_v[i], size=p[i])
+plt.scatter(samples[:, 0], samples[:, 1])
+
+
+#EM Algorithm
+#We only use our set of samples and use the EM algorithm to recover the mixing coefficients, covariance matrices, and means of the set of Gaussians.
+
+# First, we initialise the values
+mean_em = samples[np.random.randint(low=0, high=num_samples, size=num_gaussian),:]
+sigma_em = np.array([np.identity(2)]*num_gaussian)
+pi_em = np.zeros(num_gaussian)
+a = 1
+for i in range(num_gaussian-1):
+    pi_em[i] = np.random.uniform(0, a)
+    a -= pi_em[i]
+pi_em[num_gaussian-1] = a
+gamma = np.zeros((num_samples, num_gaussian))
+
+def log_likelihood(x, mean_em, sigma_em, pi_em):
+    s = np.sum([np.log(np.sum([pi_em[k]*multivariate_normal.pdf(x_i, mean=mean_em[k,:], cov=sigma_em[k,:,:]) for k in range(num_gaussian)])) for x_i in x])
+    return s
+
+epo = 1
+log_l = np.array([log_likelihood(samples, mean_em, sigma_em, pi_em)])
+dif = 100
+while (dif > 0.5 or epo>30):
+    # E step
+    for n in range(num_samples):
+        s = np.sum([pi_em[k]*multivariate_normal.pdf(samples[n,:], mean=mean_em[k,:], cov=sigma_em[k,:,:]) for k in range(num_gaussian)])
+        for k in range(num_gaussian):
+            gamma[n, k] = pi_em[k]*multivariate_normal.pdf(samples[n,:], mean=mean_em[k,:], cov=sigma_em[k,:,:])/s
+            
+    # M Step
+    N_k = [np.sum([gamma[n, k] for n in range(num_samples)]) for k in range(num_gaussian)]
+    mean_em = np.array([np.sum([gamma[n, k]*samples[n,:] for n in range(num_samples)], axis=0)/N_k[k] for k in range(num_gaussian)])
+    sigma_em = np.array([np.sum([gamma[n,k]*np.outer(samples[n,:]-mean_em[k,:], samples[n,:]-mean_em[k,:]) for n in range(num_samples)], axis=0)/N_k[k] for k in range(num_gaussian)])
+    pi_em = np.array([N_k[k]/num_samples for k in range(num_gaussian)])
+    
+    # Check Convergence criterium
+    log_l = np.append(log_l, log_likelihood(samples, mean_em, sigma_em, pi_em))
+    dif = log_l[len(log_l)-1] - log_l[-2:-1]
+    print("Run", epo, 'done with log likelihood:', log_l[len(log_l)-1])
+    epo += 1
+
+
+#Results
+#Let's have a look at the means and covariances that the EM-algorithm recovered (in red).
+
+eigen_v = [np.linalg.eig(sigma_em[k, :, :]) for k in range(num_gaussian)]
+ab = np.array([2*np.sqrt(5.99*eigen_v[k][0]) for k in range(num_gaussian)])
+max_ev = [np.argmax(ab[k], axis=0) for k in range(num_gaussian)]
+ang = [np.degrees(np.arctan(eigen_v[k][1][max_ev[k]][1]/eigen_v[k][1][max_ev[k]][0])) for k in range(num_gaussian)]
+
+plt.figure()
+ax = plt.gca()
+plt.scatter(samples[:,0],samples[:,1],color='blue')
+plt.scatter(mean_em[:,0], mean_em[:,1],color='red')
+for k in range(num_gaussian):
+    ellipse = Ellipse(mean_em[k,:], ab[k][0], ab[k][1], angle=ang[k], facecolor='none', edgecolor='red')
+    ax.add_patch(ellipse)
+
+plt.title('Recovered Gaussians from the data')
+plt.show()

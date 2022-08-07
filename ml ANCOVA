@@ -1,0 +1,23 @@
+***************************ANCOVA****************************
+
+import numpy as np
+import pandas as pd
+
+#create data
+df = pd.DataFrame({'technique': np.repeat(['A', 'B', 'C'], 5),
+                   'current_grade': [67, 88, 75, 77, 85,
+                                     92, 69, 77, 74, 88, 
+                                     96, 91, 88, 82, 80],
+                   'exam_score': [77, 89, 72, 74, 69,
+                                  78, 88, 93, 94, 90,
+                                  85, 81, 83, 88, 79]})
+#view data 
+df
+
+----Perform the ANCOVA.
+
+pip install pingouin 
+from pingouin import ancova
+
+#perform ANCOVA
+ancova(data=df, dv='exam_score', covar='current_grade', between='technique')

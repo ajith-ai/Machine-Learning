@@ -1,0 +1,1000 @@
+=============================== MACHINE LEARNING ==================================
+*******INDEX
+    1.SIMPLE LINEAR REGRESSION
+    2.LEARNING THE VARIOUS NON LINEAR STRUCTURE FUNCTION MODEL    
+    3.NON LINEAR REGRESSION
+    4.KNN (K-NERAREST NEIGHBOR)
+    5.DECISION TREE
+    6.LOGISTRIC REGRESSION
+    7.SVM(SUPPORT VECTOR MACHINES)
+    8.K-MEAN WITH RANDOM GENERATED DATASET
+    9.K-MEAN
+    10.
+    11.
+    12.
+__________________________________________________________________________________________________________
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+----------------------------- SIMPLE LINEAR REGRESSION -----------------------------
+
+----------IMPORTING
+#impoorting needed libraries
+import matplotlib.pyplot as plt
+import pandas as pd
+import pylab as pl
+import numpy as np
+%matplotlib inline
+
+#download sample dataset from the url:
+https://s3-api.us-geo.objectstorage.softlayer.net/cf-courses-data/CognitiveClass/ML0101ENv3/labs/FuelConsumptionCo2.csv
+
+--------------
+#load the data
+df = pd.read_csv("FuelConsumption.csv")
+
+# take a look at the dataset
+df.head()
+
+--------------DATA EXPLORATION
+#Lets first have a descriptive exploration on our data.
+# summarize the data
+df.describe()
+
+----------
+#lets select some feature  to explore
+cdf = df[['ENGINESIZE','CYLINDERS','FUELCONSUMPTION_COMB','CO2EMISSIONS']]
+cdf.head(9)
+
+---------
+#we can plot each of the feature sets using histrogram
+viz = cdf[['CYLINDERS','ENGINESIZE','CO2EMISSIONS','FUELCONSUMPTION_COMB']]
+viz.hist()
+plt.show()
+
+--------
+#lets plot each of these features vs the Emission, to see how linear is their relation:
+plt.scatter(cdf.FUELCONSUMPTION_COMB, cdf.CO2EMISSIONS,  color='blue')
+plt.xlabel("FUELCONSUMPTION_COMB")
+plt.ylabel("Emission")
+plt.show()
+
+plt.scatter(cdf.ENGINESIZE, cdf.CO2EMISSIONS,  color='blue')
+plt.xlabel("Engine size")
+plt.ylabel("Emission")
+plt.show()
+
+-------TRAIN AND TEST DATAESETS
+#splitting the train$test data sets
+msk = np.random.rand(len(df)) < 0.8
+train = cdf[msk]
+test = cdf[~msk]
+
+----------SIMPLE REGRESSION MODEL
+#ploting the distribution of the train data set
+plt.scatter(train.ENGINESIZE, train.CO2EMISSIONS,  color='blue')
+plt.xlabel("Engine size")
+plt.ylabel("Emission")
+plt.show()
+
+-----
+#modelling with train data set
+from sklearn import linear_model
+regr = linear_model.LinearRegression()
+train_x = np.asanyarray(train[['ENGINESIZE']])
+train_y = np.asanyarray(train[['CO2EMISSIONS']])
+regr.fit (train_x, train_y)
+# The coefficients
+print ('Coefficients: ', regr.coef_)
+print ('Intercept: ',regr.intercept_)
+
+-----------
+#we can plot the fit line over the data
+plt.scatter(train.ENGINESIZE, train.CO2EMISSIONS,  color='blue')
+plt.plot(train_x, regr.coef_[0][0]*train_x + regr.intercept_[0], '-r')
+plt.xlabel("Engine size")
+plt.ylabel("Emission")
+
+-----------EVALUVATION
+#evaluvate the model
+from sklearn.metrics import r2_score
+
+test_x = np.asanyarray(test[['ENGINESIZE']])
+test_y = np.asanyarray(test[['CO2EMISSIONS']])
+test_y_ = regr.predict(test_x)
+
+print("Mean absolute error: %.2f" % np.mean(np.absolute(test_y_ - test_y)))
+print("Residual sum of squares (MSE): %.2f" % np.mean((test_y_ - test_y) ** 2))
+print("R2-score: %.2f" % r2_score(test_y_ , test_y) )
+
+
+______________________________________________________________________________________________
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+------------------------LEARNING THE VARIOUS NON LINEAR STRUCTURE FUNCTION MODEL---------------------
+#importing libraries
+import numpy as np
+import matplotlib.pyplot as plt
+%matplotlib inline
+
+-------generating data sets
+#generating data set using array function
+x = np.arange(-5.0, 5.0, 0.1)
+
+##You can adjust the slope and intercept to verify the changes in the graph
+y = 2*(x) + 3
+y_noise = 2 * np.random.normal(size=x.size)
+ydata = y + y_noise
+#plt.figure(figsize=(8,6))
+plt.plot(x, ydata,  'bo')
+plt.plot(x,y, 'r') 
+plt.ylabel('Dependent Variable')
+plt.xlabel('Indepdendent Variable')
+plt.show()
+
+-------cubic function
+#lets take a look at cubic function function graph
+x = np.arange(-5.0, 5.0, 0.1)
+
+##You can adjust the slope and intercept to verify the changes in the graph
+y = 1*(x**3) + 1*(x**2) + 1*x + 3
+y_noise = 20 * np.random.normal(size=x.size)
+ydata = y + y_noise
+plt.plot(x, ydata,  'bo')
+plt.plot(x,y, 'r') 
+plt.ylabel('Dependent Variable')
+plt.xlabel('Indepdendent Variable')
+plt.show()
+
+--------quadratic
+#lets take a look at quadratic function function graph
+x = np.arange(-5.0, 5.0, 0.1)
+
+##You can adjust the slope and intercept to verify the changes in the graph
+
+y = np.power(x,2)
+y_noise = 2 * np.random.normal(size=x.size)
+ydata = y + y_noise
+plt.plot(x, ydata,  'bo')
+plt.plot(x,y, 'r') 
+plt.ylabel('Dependent Variable')
+plt.xlabel('Indepdendent Variable')
+plt.show()
+
+--------exponential
+#lets take a look at exponential function function graph
+X = np.arange(-5.0, 5.0, 0.1)
+
+##You can adjust the slope and intercept to verify the changes in the graph
+
+Y= np.exp(X)
+
+plt.plot(X,Y) 
+plt.ylabel('Dependent Variable')
+plt.xlabel('Indepdendent Variable')
+plt.show()
+
+---------logarithmic(𝑦=log(𝑋))
+#lets take a look at logarithmic function function graph
+X = np.arange(-5.0, 5.0, 0.1)
+
+Y = np.log(X)
+
+plt.plot(X,Y) 
+plt.ylabel('Dependent Variable')
+plt.xlabel('Indepdendent Variable')
+plt.show()
+
+-----------sigmoidal
+#lets take a look at sigmoidal function function graph
+X = np.arange(-5.0, 5.0, 0.1)
+
+
+Y = 1-4/(1+np.power(3, X-2))
+
+plt.plot(X,Y) 
+plt.ylabel('Dependent Variable')
+plt.xlabel('Indepdendent Variable')
+plt.show()
+
+______________________________________________________________________________________________
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+-----------------------------NON LINEAR REGRESSION MODEL----------------------------
+
+-------
+#impoorting needed libraries
+import numpy as np
+import pandas as pd
+
+#downloading dataset
+https://s3-api.us-geo.objectstorage.softlayer.net/cf-courses-data/CognitiveClass/ML0101ENv3/labs/china_gdp.csv
+ 
+--------
+#load the data 
+df = pd.read_csv("china_gdp.csv")
+df.head(10)
+
+-------
+#ploting the dataset
+plt.figure(figsize=(8,5))
+x_data, y_data = (df["Year"].values, df["Value"].values)
+plt.plot(x_data, y_data, 'ro')
+plt.ylabel('GDP')
+plt.xlabel('Year')
+plt.show()
+
+------#"choose the approximate model from the ploted dataset" likes as quadratic or logarithmic or exponential or sigmoidal ,etc#
+-------BUILD THE MODEL
+# let's build our regression model and initialize its parameters.
+def sigmoid(x, Beta_1, Beta_2):
+     y = 1 / (1 + np.exp(-Beta_1*(x-Beta_2)))
+     return y
+
+--------
+#Lets look at a sample sigmoid line that might fit with the data:
+beta_1 = 0.10
+beta_2 = 1990.0
+
+#logistic function
+Y_pred = sigmoid(x_data, beta_1 , beta_2)
+
+#plot initial prediction against datapoints
+plt.plot(x_data, Y_pred*15000000000000.)
+plt.plot(x_data, y_data, 'ro')
+
+---------normalize our data
+#Our task here is to find the best parameters for our model. Lets first normalize our x and y:
+# Lets normalize our data
+xdata =x_data/max(x_data)
+ydata =y_data/max(y_data)
+
+-----------
+#our optimized parameters
+from scipy.optimize import curve_fit
+popt, pcov = curve_fit(sigmoid, xdata, ydata)
+#print the final parameters
+print(" beta_1 = %f, beta_2 = %f" % (popt[0], popt[1]))
+
+---------
+#now we plot our resulting regression model
+x = np.linspace(1960, 2015, 55)
+x = x/max(x)
+plt.figure(figsize=(8,5))
+y = sigmoid(x, *popt)
+plt.plot(xdata, ydata, 'ro', label='data')
+plt.plot(x,y, linewidth=3.0, label='fit')
+plt.legend(loc='best')
+plt.ylabel('GDP')
+plt.xlabel('Year')
+plt.show()
+
+------EVALUVATION
+#calculate the accuracy of the model
+# split data into train/test
+msk = np.random.rand(len(df)) < 0.8
+train_x = xdata[msk]
+test_x = xdata[~msk]
+train_y = ydata[msk]
+test_y = ydata[~msk]
+
+# build the model using train set
+popt, pcov = curve_fit(sigmoid, train_x, train_y)
+
+# predict using test set
+y_hat = sigmoid(test_x, *popt)
+
+# evaluation
+print("Mean absolute error: %.2f" % np.mean(np.absolute(y_hat - test_y)))
+print("Residual sum of squares (MSE): %.2f" % np.mean((y_hat - test_y) ** 2))
+from sklearn.metrics import r2_score
+print("R2-score: %.2f" % r2_score(y_hat , test_y) )
+
+
+______________________________________________________________________________________________
+
+
+
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+----------------------------KNN (K-NERAREST NEIGHBOR)---------------------------------
+#download the dataset using the url
+https://s3-api.us-geo.objectstorage.softlayer.net/cf-courses-data/CognitiveClass/ML0101ENv3/labs/teleCust1000t.csv
+
+#importing libraries 
+import itertools
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.ticker import NullFormatter
+import pandas as pd
+import numpy as np
+import matplotlib.ticker as ticker
+from sklearn import preprocessing
+%matplotlib inline
+
+-----------
+#load the data
+df = pd.read_csv('teleCust1000t.csv')
+df.head()
+
+------------data visualization
+#lets see how many each class in dataset
+df['custcat'].value_counts()
+
+#visualization by hist
+df.hist(column='income', bins=50)
+
+--------------feature sets of the data
+#define the columns of the dataset
+df.columns
+
+#To use scikit-learn library, we have to convert the Pandas data frame to a Numpy array:
+X = df[['region', 'tenure','age', 'marital', 'address', 'income', 'ed', 'employ','retire', 'gender', 'reside']] .values  #.astype(float)
+X[0:5]
+
+#whats are labels 
+y = df['custcat'].values
+y[0:5]
+
+--------------normalize the data
+#Normalize Data
+#Data Standardization give data zero mean and unit variance, it is good practice, especially for algorithms such as KNN which is based on distance of cases:
+X = preprocessing.StandardScaler().fit(X).transform(X.astype(float))
+X[0:5]
+
+-------------test train split
+#test/train split datafrom sklearn.model_selection import train_test_split
+X_train, X_test, y_train, y_test = train_test_split( X, y, test_size=0.2, random_state=4)
+print ('Train set:', X_train.shape,  y_train.shape)
+print ('Test set:', X_test.shape,  y_test.shape)
+
+--------------classification KNN
+#importing library for KNN
+from sklearn.neighbors import KNeighborsClassifier
+
+--------------training 
+#train the model. lets start k=4 in algorithms
+k = 4
+#Train Model and Predict  
+neigh = KNeighborsClassifier(n_neighbors = k).fit(X_train,y_train)
+neigh
+
+---------------predicting 
+#predicting the test data
+yhat = neigh.predict(X_test)
+yhat[0:5]
+
+----------Accuracy evaluation
+#In multilabel classification, accuracy classification score function computes subset accuracy.
+# This function is equal to the jaccard_similarity_score function. Essentially,
+# it calculates how match the actual labels and predicted labels are in the test set.
+from sklearn import metrics
+print("Train set Accuracy: ", metrics.accuracy_score(y_train, neigh.predict(X_train)))
+print("Test set Accuracy: ", metrics.accuracy_score(y_test, yhat))
+
+-------------lets build the model with k=6
+#k=6 for model
+k = 6
+#Train Model and Predict  
+neigh = KNeighborsClassifier(n_neighbors = k).fit(X_train,y_train)
+neigh
+
+yhat = neigh.predict(X_test)
+yhat[0:5]
+
+from sklearn import metrics
+print("Train set Accuracy: ", metrics.accuracy_score(y_train, neigh.predict(X_train)))
+print("Test set Accuracy: ", metrics.accuracy_score(y_test, yhat))
+
+-------------different ks value
+#We can calucalte the accuracy of KNN for different Ks.
+Ks = 10
+mean_acc = np.zeros((Ks-1))
+std_acc = np.zeros((Ks-1))
+ConfustionMx = [];
+for n in range(1,Ks):
+    
+    #Train Model and Predict  
+    neigh = KNeighborsClassifier(n_neighbors = n).fit(X_train,y_train)
+    yhat=neigh.predict(X_test)
+    mean_acc[n-1] = metrics.accuracy_score(y_test, yhat)
+
+    
+    std_acc[n-1]=np.std(yhat==y_test)/np.sqrt(yhat.shape[0])
+
+mean_acc
+
+-------------ploting different ks value
+#Plot model accuracy for Different number of Neighbors
+plt.plot(range(1,Ks),mean_acc,'g')
+plt.fill_between(range(1,Ks),mean_acc - 1 * std_acc,mean_acc + 1 * std_acc, alpha=0.10)
+plt.legend(('Accuracy ', '+/- 3xstd'))
+plt.ylabel('Accuracy ')
+plt.xlabel('Number of Nabors (K)')
+plt.tight_layout()
+plt.show()
+
+#print the best accuracy
+print( "The best accuracy was with", mean_acc.max(), "with k=", mean_acc.argmax()+1) 
+
+
+__________________________________________________________________________________________________________
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+------------------------------------DECISION TREE-----------------------------
+#download the dataset using the url
+https://s3-api.us-geo.objectstorage.softlayer.net/cf-courses-data/CognitiveClass/ML0101ENv3/labs/drug200.csv
+
+--------libraries
+#importing the libraries
+import numpy as np 
+import pandas as pd
+from sklearn.tree import DecisionTreeClassifier
+
+-------load the data
+#load the data
+my_data = pd.read_csv("drug200.csv", delimiter=",")
+my_data[0:5]
+
+--------preprocessing the data
+#we have to convert the Pandas data frame to a Numpy array:
+X = my_data[['Age', 'Sex', 'BP', 'Cholesterol', 'Na_to_K']].values
+X[0:5]
+
+-------dummy the categorical variables
+# Convert categorical variable into dummy/indicator variables.
+from sklearn import preprocessing
+le_sex = preprocessing.LabelEncoder()
+le_sex.fit(['F','M'])
+X[:,1] = le_sex.transform(X[:,1]) 
+
+
+le_BP = preprocessing.LabelEncoder()
+le_BP.fit([ 'LOW', 'NORMAL', 'HIGH'])
+X[:,2] = le_BP.transform(X[:,2])
+
+
+le_Chol = preprocessing.LabelEncoder()
+le_Chol.fit([ 'NORMAL', 'HIGH'])
+X[:,3] = le_Chol.transform(X[:,3]) 
+
+X[0:5]
+
+----------target variable
+#now we can fill the target variable
+y = my_data["Drug"]
+y[0:5]
+
+------------SETTING UP DECISION TREE
+#importing libraries
+from sklearn.model_selection import train_test_split
+
+---------splitting the data
+#test train data spliting
+X_trainset, X_testset, y_trainset, y_testset = train_test_split(X, y, test_size=0.3, random_state=3)
+
+-----------shape& size
+#shape of the train set data
+print('x_trainset shape is',X_trainset.shape)
+print('y_trainset shape is',y_trainset.shape)
+
+-------MODELLING
+#We will first create an instance of the DecisionTreeClassifier called drugTree.
+#Inside of the classifier, specify criterion="entropy" so we can see the information gain of each node.
+drugTree = DecisionTreeClassifier(criterion="entropy", max_depth = 4)
+drugTree # it shows the default parameters
+
+-------fitting the data
+#Next, we will fit the data with the training feature matrix X_trainset and training response vector y_trainset
+drugTree.fit(X_trainset,y_trainset)
+
+-----------PREDICTON
+#Let's make some predictions on the testing dataset and store it into a variable called predTree.
+predTree = drugTree.predict(X_testset)
+
+---------compare the actual data vs predicted data
+#You can print out predTree and y_testset if you want to visually compare the prediction to the actual values.
+print (predTree [0:5])
+print (y_testset [0:5])
+
+---------EVALUVATION
+#Next, let's import metrics from sklearn and check the accuracy of our model
+from sklearn import metrics
+import matplotlib.pyplot as plt
+print("DecisionTrees's Accuracy: ", metrics.accuracy_score(y_testset, predTree))
+# If the entire set of predicted labels for a sample strictly match with the true set of labels, then the subset accuracy is 1.0; otherwise it is 0.0.
+
+-------VISUALIZATION
+#importing libraries
+from sklearn.externals.six import StringIO
+import pydotplus
+import matplotlib.image as mpimg
+from sklearn import tree
+%matplotlib inline 
+
+--------
+#lets plot the tree
+dot_data = StringIO()
+filename = "drugtree.png"
+featureNames = my_data.columns[0:5]
+targetNames = my_data["Drug"].unique().tolist()
+out=tree.export_graphviz(drugTree,feature_names=featureNames, out_file=dot_data, class_names= np.unique(y_trainset), filled=True,  special_characters=True,rotate=False)  
+graph = pydotplus.graph_from_dot_data(dot_data.getvalue())  
+graph.write_png(filename)
+img = mpimg.imread(filename)
+plt.figure(figsize=(100, 200))
+plt.imshow(img,interpolation='nearest')
+
+
+__________________________________________________________________________________________________________
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+--------------------------------------LOGISTRIC REGRESSION----------------------------------------
+#download the dataset using the url
+https://s3-api.us-geo.objectstorage.softlayer.net/cf-courses-data/CognitiveClass/ML0101ENv3/labs/ChurnData.csv
+-------------
+#impoorting libraries
+import pandas as pd
+import pylab as pl
+import numpy as np
+import scipy.optimize as opt
+from sklearn import preprocessing
+%matplotlib inline 
+import matplotlib.pyplot as plt
+
+------------
+#loading the data
+churn_df = pd.read_csv("ChurnData.csv")
+churn_df.head()
+
+-----------DATA PREPRROCESSING  & SELECTION
+#Lets select some features for the modeling.
+#Also we change the target data type to be integer, as it is a requirement by the skitlearn algorithm:
+churn_df = churn_df[['tenure', 'age', 'address', 'income', 'ed', 'employ', 'equip',   'callcard', 'wireless','churn']]
+churn_df['churn'] = churn_df['churn'].astype('int')
+churn_df.head()
+
+-------------define the feature sets and target
+#define the x datasets(feature datasets)
+X = np.asarray(churn_df[['tenure', 'age', 'address', 'income', 'ed', 'employ', 'equip']])
+X[0:5]
+
+
+#define the y datasets(target variable)
+y = np.asarray(churn_df['churn'])
+y [0:5]
+
+-----------NORRMALIZATION
+#normalize the dataset
+from sklearn import preprocessing
+X = preprocessing.StandardScaler().fit(X).transform(X)
+X[0:5]
+
+----------TEST/TRAIN DATASET SPLIT
+#splitting the test and train dataset
+from sklearn.model_selection import train_test_split
+X_train, X_test, y_train, y_test = train_test_split( X, y, test_size=0.2, random_state=4)
+print ('Train set:', X_train.shape,  y_train.shape)
+print ('Test set:', X_test.shape,  y_test.shape)
+
+---------MOODELLING (LOGISTIC REGRESSION WITH SCIKIT LEARN)
+#now lets fit our modelling with train set
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import confusion_matrix
+LR = LogisticRegression(C=0.01, solver='liblinear').fit(X_train,y_train)
+LR
+
+-----------PREDICTON
+#now  we can predict using test datasets
+yhat = LR.predict(X_test)
+yhat
+
+-------prediction probability
+#predict_proba returns estimates for all classes, ordered by the label of classes.
+# So, the first column is the probability of class 1, P(Y=1|X), and second column is probability of class 0, P(Y=0|X):
+yhat_prob = LR.predict_proba(X_test)
+yhat_prob
+
+--------EVALUVATION-(#jaccard index#)
+#Lets try jaccard index for accuracy evaluation. we can define jaccard as the size of the intersection divided by the size of the union of two label sets.
+#If the entire set of predicted labels for a sample strictly match with the true set of labels, then the subset accuracy is 1.0; otherwise it is 0.0.
+from sklearn.metrics import jaccard_similarity_score
+jaccard_similarity_score(y_test, yhat)
+
+-----------CONFUSION MATRIX
+#Another way of looking at accuracy of classifier is to look at confusion matrix.
+
+from sklearn.metrics import classification_report, confusion_matrix
+import itertools
+def plot_confusion_matrix(cm, classes,
+                          normalize=False,
+                          title='Confusion matrix',
+                          cmap=plt.cm.Blues):
+    """
+    This function prints and plots the confusion matrix.
+    Normalization can be applied by setting `normalize=True`.
+    """
+    if normalize:
+        cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
+        print("Normalized confusion matrix")
+    else:
+        print('Confusion matrix, without normalization')
+
+    print(cm)
+
+    plt.imshow(cm, interpolation='nearest', cmap=cmap)
+    plt.title(title)
+    plt.colorbar()
+    tick_marks = np.arange(len(classes))
+    plt.xticks(tick_marks, classes, rotation=45)
+    plt.yticks(tick_marks, classes)
+
+    fmt = '.2f' if normalize else 'd'
+    thresh = cm.max() / 2.
+    for i, j in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
+        plt.text(j, i, format(cm[i, j], fmt),
+                 horizontalalignment="center",
+                 color="white" if cm[i, j] > thresh else "black")
+
+    plt.tight_layout()
+    plt.ylabel('True label')
+    plt.xlabel('Predicted label')
+print(confusion_matrix(y_test, yhat, labels=[1,0]))
+
+-----------
+#ploting the confusion matrix
+# Compute confusion matrix
+cnf_matrix = confusion_matrix(y_test, yhat, labels=[1,0])
+np.set_printoptions(precision=2)
+
+
+# Plot non-normalized confusion matrix
+plt.figure()
+plot_confusion_matrix(cnf_matrix, classes=['churn=1','churn=0'],normalize= False,  title='Confusion matrix')
+
+---------classification report
+#calaculate the  report 
+print (classification_report(y_test, yhat))
+
+----------LOG LOSS
+#let see the log loss
+from sklearn.metrics import log_loss
+log_loss(y_test, yhat_prob)
+
+-----------
+#Try to build Logistic Regression model again for the same dataset, but this time, use different solver and regularization values? What is new logLoss value?
+LR2 = LogisticRegression(C=0.01, solver='sag').fit(X_train,y_train)
+yhat_prob2 = LR2.predict_proba(X_test)
+print ("LogLoss: : %.2f" % log_loss(y_test, yhat_prob2))
+
+__________________________________________________________________________________________________________
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+------------------------------------SVM(SUPPORT VECTOR MACHINES)-------------------------------------------
+#download the dataset using the url
+https://s3-api.us-geo.objectstorage.softlayer.net/cf-courses-data/CognitiveClass/ML0101ENv3/labs/cell_samples.csv
+
+-------libraries
+#importing libraries
+import pandas as pd
+import pylab as pl
+import numpy as np
+import scipy.optimize as opt
+from sklearn import preprocessing
+from sklearn.model_selection import train_test_split
+%matplotlib inline 
+import matplotlib.pyplot as plt
+
+-------
+#importing the data
+cell_df = pd.read_csv("cell_samples.csv")
+cell_df.head()cell_df = pd.read_csv("cell_samples.csv")
+cell_df.head()
+
+------
+#Lets look at the distribution of the classes based on Clump thickness and Uniformity of cell size:(malignant=4,benign=2)
+ax = cell_df[cell_df['Class'] == 4][0:50].plot(kind='scatter', x='Clump', y='UnifSize', color='DarkBlue', label='malignant');
+cell_df[cell_df['Class'] == 2][0:50].plot(kind='scatter', x='Clump', y='UnifSize', color='Yellow', label='benign', ax=ax);
+plt.show()
+
+-------Data pre-processing and selection
+#Lets first look at columns data types:
+cell_df.dtypes
+
+----------remove the wroong data types
+#It looks like the BareNuc column includes some values that are not numerical. We can drop those rows:
+cell_df = cell_df[pd.to_numeric(cell_df['BareNuc'], errors='coerce').notnull()]
+cell_df['BareNuc'] = cell_df['BareNuc'].astype('int')
+cell_df.dtypes
+
+---------extracting the feature sets
+#converting pandas data frame into to np array 
+feature_df = cell_df[['Clump', 'UnifSize', 'UnifShape', 'MargAdh', 'SingEpiSize', 'BareNuc', 'BlandChrom', 'NormNucl', 'Mit']]
+X = np.asarray(feature_df)
+X[0:5]
+
+-----------extracting the target set
+#prediction target set
+cell_df['Class'] = cell_df['Class'].astype('int')
+y = np.asarray(cell_df['Class'])
+y [0:5]
+
+--------test train dataset
+#splitting the test train datasets
+X_train, X_test, y_train, y_test = train_test_split( X, y, test_size=0.2, random_state=4)
+print ('Train set:', X_train.shape,  y_train.shape)
+print ('Test set:', X_test.shape,  y_test.shape)
+
+---------MODELLING(SVM WITN SCIKIT-LEARN)
+#The SVM algorithm offers a choice of kernel functions for performing its processing.
+#Basically, mapping data into a higher dimensional space is called kernelling. 
+#The mathematical function used for the transformation is known as the kernel function, and can be of different types, such as:
+
+1.Linear
+2.Polynomial
+3.Radial basis function (RBF)
+4.Sigmoid
+
+#select the function using kernel(function=rbf)
+from sklearn import svm
+clf = svm.SVC(kernel='rbf') #if u need to use linear (kernal='linear')
+clf.fit(X_train, y_train) 
+
+----------PREDICTON
+#lets predict the target value
+yhat = clf.predict(X_test)
+yhat [0:5]
+
+---------EVALUVATION
+#importing confusion matrix
+from sklearn.metrics import classification_report, confusion_matrix
+import itertools
+
+#evaluation
+def plot_confusion_matrix(cm, classes,
+                          normalize=False,
+                          title='Confusion matrix',
+                          cmap=plt.cm.Blues):
+    """
+    This function prints and plots the confusion matrix.
+    Normalization can be applied by setting `normalize=True`.
+    """
+    if normalize:
+        cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
+        print("Normalized confusion matrix")
+    else:
+        print('Confusion matrix, without normalization')
+
+    print(cm)
+
+    plt.imshow(cm, interpolation='nearest', cmap=cmap)
+    plt.title(title)
+    plt.colorbar()
+    tick_marks = np.arange(len(classes))
+    plt.xticks(tick_marks, classes, rotation=45)
+    plt.yticks(tick_marks, classes)
+
+    fmt = '.2f' if normalize else 'd'
+    thresh = cm.max() / 2.
+    for i, j in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
+        plt.text(j, i, format(cm[i, j], fmt),
+                 horizontalalignment="center",
+                 color="white" if cm[i, j] > thresh else "black")
+
+    plt.tight_layout()
+    plt.ylabel('True label')
+    plt.xlabel('Predicted label')
+
+-----------   
+# Compute confusion matrix
+cnf_matrix = confusion_matrix(y_test, yhat, labels=[2,4])
+np.set_printoptions(precision=2)
+
+print (classification_report(y_test, yhat))
+
+# Plot non-normalized confusion matrix
+plt.figure()
+plot_confusion_matrix(cnf_matrix, classes=['Benign(2)','Malignant(4)'],normalize= False,  title='Confusion matrix')
+
+------f1 score
+#sklearn easy to obtain f1 score
+from sklearn.metrics import f1_score
+f1_score(y_test, yhat, average='weighted') 
+
+----jaccard index
+#lets try jaccard index for accuracy
+from sklearn.metrics import jaccard_similarity_score
+jaccard_similarity_score(y_test, yhat)
+
+------practice
+#lets write the code with kernal linearclf2 = svm.SVC(kernel='linear')
+clf2.fit(X_train, y_train) 
+yhat2 = clf2.predict(X_test)
+print("Avg F1-score: %.4f" % f1_score(y_test, yhat2, average='weighted'))
+print("Jaccard score: %.4f" % jaccard_similarity_score(y_test, yhat2))
+
+
+__________________________________________________________________________________________________________
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+---------------------------------------K-MEAN WITH RANDOM GENERATED DATASET---------------------------------
+
+-------
+#importing the required libraries
+import random 
+import numpy as np 
+import matplotlib.pyplot as plt 
+from sklearn.cluster import KMeans 
+from sklearn.datasets.samples_generator import make_blobs 
+%matplotlib inline
+
+-------GENERATING RANDOM DATASET
+#First we need to set up a random seed. Use numpy's random.seed() function, where the seed will be set to 0
+np.random.seed(0)
+
+#Next we will be making random clusters of points by using the make_blobs class.
+X, y = make_blobs(n_samples=5000, centers=[[4,4], [-2, -1], [2, -3], [1, 1]], cluster_std=0.9)
+
+#display the randomly generated data
+plt.scatter(X[:, 0], X[:, 1], marker='.')
+
+-------setting up k mean
+#initialize the k mean with parameters
+k_means = KMeans(init = "k-means++", n_clusters = 4, n_init = 12)
+
+#Now let's fit the KMeans model with the feature matrix we created above, X
+k_means.fit(X)
+
+-------
+#Now let's grab the labels for each point in the model using KMeans' .labels_ attribute and save it as k_means_labels
+k_means_labels = k_means.labels_
+k_means_labels
+
+-----
+#We will also get the coordinates of the cluster centers using KMeans' .cluster_centers_ and save it as k_means_cluster_centers
+k_means_cluster_centers = k_means.cluster_centers_
+k_means_cluster_centers
+
+-------creating the visual plots
+#
+
+# Initialize the plot with the specified dimensions.
+fig = plt.figure(figsize=(6, 4))
+
+# Colors uses a color map, which will produce an array of colors based on
+# the number of labels there are. We use set(k_means_labels) to get the
+# unique labels.
+colors = plt.cm.Spectral(np.linspace(0, 1, len(set(k_means_labels))))
+
+# Create a plot
+ax = fig.add_subplot(1, 1, 1)
+
+# For loop that plots the data points and centroids.
+# k will range from 0-3, which will match the possible clusters that each
+# data point is in.
+for k, col in zip(range(len([[4,4], [-2, -1], [2, -3], [1, 1]])), colors):
+
+    # Create a list of all data points, where the data poitns that are 
+    # in the cluster (ex. cluster 0) are labeled as true, else they are
+    # labeled as false.
+    my_members = (k_means_labels == k)
+    
+    # Define the centroid, or cluster center.
+    cluster_center = k_means_cluster_centers[k]
+    
+    # Plots the datapoints with color col.
+    ax.plot(X[my_members, 0], X[my_members, 1], 'w', markerfacecolor=col, marker='.')
+    
+    # Plots the centroids with specified color, but with a darker outline
+    ax.plot(cluster_center[0], cluster_center[1], 'o', markerfacecolor=col,  markeredgecolor='k', markersize=6)
+
+# Title of the plot
+ax.set_title('KMeans')
+
+# Remove x-axis ticks
+ax.set_xticks(())
+
+# Remove y-axis ticks
+ax.set_yticks(())
+
+# Show the plot
+plt.show()
+
+-------Practice
+#Try to cluster the above dataset into 3 clusters.
+k_means3 = KMeans(init = "k-means++", n_clusters = 3, n_init = 12)
+k_means3.fit(X)
+fig = plt.figure(figsize=(6, 4))
+colors = plt.cm.Spectral(np.linspace(0, 1, len(set(k_means3.labels_))))
+ax = fig.add_subplot(1, 1, 1)
+for k, col in zip(range(len(k_means3.cluster_centers_)), colors):
+    my_members = (k_means3.labels_ == k)
+    cluster_center = k_means3.cluster_centers_[k]
+    ax.plot(X[my_members, 0], X[my_members, 1], 'w', markerfacecolor=col, marker='.')
+    ax.plot(cluster_center[0], cluster_center[1], 'o', markerfacecolor=col,  markeredgecolor='k', markersize=6)
+plt.show()
+
+______________________________________________________________________________________________
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+-----------------------------------------------K-MEAN-----------------------------------------------
+#download the data using the url
+https://s3-api.us-geo.objectstorage.softlayer.net/cf-courses-data/CognitiveClass/ML0101ENv3/labs/Cust_Segmentation.csv
+----------
+#load the data
+import pandas as pd
+cust_df = pd.read_csv("Cust_Segmentation.csv")
+cust_df.head()
+
+---------preprocessing the data
+#drop the address from the dataset
+df = cust_df.drop('Address', axis=1)
+df.head()
+
+----------normalize
+#normalized over  standard deviation
+from sklearn.preprocessing import StandardScaler
+X = df.values[:,1:]
+X = np.nan_to_num(X)
+Clus_dataSet = StandardScaler().fit_transform(X)
+Clus_dataSet
+
+--------model
+#modeling
+clusterNum = 3
+k_means = KMeans(init = "k-means++", n_clusters = clusterNum, n_init = 12)
+k_means.fit(X)
+labels = k_means.labels_
+print(labels)
+
+-----Insights
+#We assign the labels to each row in dataframe.
+df["Clus_km"] = labels
+df.head(5)
+
+-----
+#We can easily check the centroid values by averaging the features in each cluster.
+df.groupby('Clus_km').mean()
+
+----------distribution
+#Now, lets look at the distribution of customers based on their age and income:
+area = np.pi * ( X[:, 1])**2  
+plt.scatter(X[:, 0], X[:, 3], s=area, c=labels.astype(np.float), alpha=0.5)
+plt.xlabel('Age', fontsize=18)
+plt.ylabel('Income', fontsize=16)
+
+plt.show()
+
+---------
+#3 dimensional distribution
+from mpl_toolkits.mplot3d import Axes3D 
+fig = plt.figure(1, figsize=(8, 6))
+plt.clf()
+ax = Axes3D(fig, rect=[0, 0, .95, 1], elev=48, azim=134)
+
+plt.cla()
+# plt.ylabel('Age', fontsize=18)
+# plt.xlabel('Income', fontsize=16)
+# plt.zlabel('Education', fontsize=16)
+ax.set_xlabel('Education')
+ax.set_ylabel('Age')
+ax.set_zlabel('Income')
+
+ax.scatter(X[:, 1], X[:, 0], X[:, 3], c= labels.astype(np.float))
+
+
+______________________________________________________________________________________________
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+----------------------------------
